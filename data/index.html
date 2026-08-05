@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Power Outage Monitor | AnbuSoft</title>
+    <link rel="stylesheet" href="/style.css?v=3">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body class="dark-mode">
+    <div class="app-container">
+        <div class="sidebar-overlay" id="sidebar-overlay"></div>
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h2>⚡ PowerMon</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="/dashboard" class="active" data-target="dashboard">Dashboard</a>
+                <a href="/history" data-target="history">Event History</a>
+                <a href="/daily" data-target="daily">Daily Report</a>
+                <a href="/weekly" data-target="weekly">Weekly Report</a>
+                <a href="/monthly" data-target="monthly">Monthly Report</a>
+                <a href="/statistics" data-target="statistics">Statistics</a>
+                <a href="/settings" data-target="settings">Settings</a>
+                <a href="/update" target="_blank">OTA Update</a>
+            </nav>
+            <div class="sidebar-footer">
+                <button id="theme-toggle" class="btn btn-outline mb-4" style="width: 100%;">☀️ Light Mode</button>
+                <div class="social-links" style="font-size: 0.9em; opacity: 0.8;">
+                    <a href="https://github.com/AnbuSoft/EspElectrycityMonitor" target="_blank"
+                        style="color: var(--text-color); display: block; margin-bottom: 5px; text-decoration: none;">📦
+                        GitHub Repo</a>
+                    <a href="https://t.me/AnbuSoft" target="_blank"
+                        style="color: var(--text-color); display: block; text-decoration: none;">💬 Telegram Channel</a>
+                </div>
+            </div>
+        </aside>
+
+        <main class="content">
+            <!-- Topbar with Live Clock -->
+            <header class="topbar glass">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <button id="menu-toggle" class="menu-btn">☰</button>
+                    <h1 id="page-title">Dashboard</h1>
+                </div>
+                <div class="live-clock" id="live-clock">--:--:--</div>
+            </header>
+
+            <!-- Views -->
+            <div id="view-dashboard" class="view active">
+                <div class="status-banner glass" id="current-status-banner">
+                    <span class="status-indicator"></span>
+                    <span id="status-text">Loading Status...</span>
+                </div>
+
+                <div class="cards-grid">
+                    <div class="card glass">
+                        <h3>Device Uptime</h3>
+                        <p id="home-uptime" class="metric">--</p>
+                    </div>
+                    <div class="card glass">
+                        <h3>Last Outage</h3>
+                        <p id="home-last-outage" class="metric">--</p>
+                    </div>
+                    <div class="card glass">
+                        <h3>Current Session Time</h3>
+                        <p id="home-session" class="metric">--</p>
+                    </div>
+                    <div class="card glass">
+                        <h3>Total Outages Logged</h3>
+                        <p id="home-total-outages" class="metric">--</p>
+                    </div>
+                </div>
+
+                <div class="chart-container glass mt-4">
+                    <h3>Recent Outages Duration (Minutes)</h3>
+                    <canvas id="homeTimelineChart"></canvas>
+                </div>
+            </div>
+
+            <!-- History View -->
+            <div id="view-history" class="view">
+                <div class="history-controls mb-4" style="display: flex; gap: 10px;">
+                    <button class="btn btn-danger" onclick="clearHistory()">🗑️ Clear History</button>
+                    <button class="btn btn-secondary" onclick="loadHistory()">🔄 Refresh</button>
+                    <button id="btn-export-csv" class="btn btn-primary">📊 Export CSV</button>
+                    <button id="btn-export-json" class="btn btn-primary">📦 Export JSON</button>
+                </div>
+                <div class="table-container glass">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Time</th>
+                                <th>Event Type</th>
+                                <th>Duration</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-tbody">
+                            <tr>
+                                <td colspan="5">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="pagination mt-2" id="history-pagination">
+                    <button class="btn btn-outline" onclick="prevPage()">Prev</button>
+                    <span id="page-num">1</span>
+                    <button class="btn btn-outline" onclick="nextPage()">Next</button>
+                </div>
+            </div>
+
+            <!-- Daily View -->
+            <div id="view-daily" class="view">
+                <div class="chart-container glass">
+                    <h3>Daily Outage Duration (Minutes)</h3>
+                    <canvas id="dailyChart"></canvas>
+                </div>
+            </div>
+
+            <div id="view-weekly" class="view">
+                <div class="chart-container glass">
+                    <h3>Weekly Outage Duration (Minutes)</h3>
+                    <canvas id="weeklyChart"></canvas>
+                </div>
+            </div>
+
+            <div id="view-monthly" class="view">
+                <div class="chart-container glass">
+                    <h3>Monthly Outage Duration (Minutes)</h3>
+                    <canvas id="monthlyChart"></canvas>
+                </div>
+            </div>
+
+            <div id="view-statistics" class="view">
+                <div class="cards-grid" id="stats-grid">
+                    <div class="card glass">
+                        <h3>Total Outage Time</h3>
+                        <p id="stat-total-outage" class="metric">--</p>
+                    </div>
+                    <div class="card glass">
+                        <h3>Longest Outage</h3>
+                        <p id="stat-longest-outage" class="metric">--</p>
+                    </div>
+                    <div class="card glass">
+                        <h3>Shortest Outage</h3>
+                        <p id="stat-shortest-outage" class="metric">--</p>
+                    </div>
+                    <div class="card glass">
+                        <h3>Average Outage</h3>
+                        <p id="stat-average-outage" class="metric">--</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="view-settings" class="view">
+                <div class="form-container glass">
+                    <h3>Configuration</h3>
+                    <form id="settings-form">
+                        <div class="form-group">
+                            <label>Device Name:</label>
+                            <input type="text" id="set-name" class="form-control">
+                        </div>
+                        <!-- WiFi Connected State -->
+                        <div id="wifi-connected" style="display: none;">
+                            <div class="card glass" style="margin-bottom: 15px; padding: 15px;">
+                                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                                    <div>
+                                        <span style="font-size: 1.3em;">📶</span>
+                                        <strong>Connected to:</strong>
+                                        <span id="wifi-connected-ssid" style="color: var(--primary-color); font-weight: 600;">--</span>
+                                    </div>
+                                    <div style="font-size: 0.85em; opacity: 0.7;">
+                                        IP: <span id="wifi-connected-ip">--</span> &nbsp;|&nbsp;
+                                        Signal: <span id="wifi-connected-rssi">--</span> dBm
+                                    </div>
+                                </div>
+                                <div style="margin-top: 12px;">
+                                    <button type="button" id="forget-wifi-btn" class="btn btn-warning">Forget Network</button>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- WiFi Setup State -->
+                        <div id="wifi-setup">
+                            <div class="form-group">
+                                <label>Router WiFi SSID (for Internet connection):</label>
+                                <input type="text" id="set-ssid" class="form-control"
+                                    placeholder="Leave empty for AP mode only">
+                            </div>
+                            <div class="form-group">
+                                <label>Router WiFi Password:</label>
+                                <input type="password" id="set-pass" class="form-control">
+                            </div>
+                            <div class="form-group" style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+                                <button type="button" id="scan-wifi-btn" class="btn btn-outline">Scan Nearby Networks</button>
+                                <button type="button" id="connect-wifi-btn" class="btn btn-primary">Connect Now</button>
+                            </div>
+                            <div class="form-group">
+                                <label>Available WiFi Networks:</label>
+                                <select id="wifi-networks" class="form-control">
+                                    <option value="">Scan to load nearby networks</option>
+                                </select>
+                            </div>
+                        </div>
+                        <hr class="mt-4 mb-4">
+                        <div class="form-group">
+                            <label>ESP Access Point SSID:</label>
+                            <input type="text" id="set-ap-ssid" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label>ESP Access Point Password:</label>
+                            <input type="password" id="set-ap-pass" class="form-control">
+                        </div>
+                        <hr class="mt-4 mb-4">
+                        <div class="form-group">
+                            <label>NTP Server:</label>
+                            <select id="set-ntp" class="form-control">
+                                <option value="pool.ntp.org">pool.ntp.org (Global)</option>
+                                <option value="time.google.com">time.google.com (Google)</option>
+                                <option value="time.windows.com">time.windows.com (Microsoft)</option>
+                                <option value="time.nist.gov">time.nist.gov (NIST)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Timezone Offset:</label>
+                            <select id="set-tz" class="form-control">
+                                <option value="-43200">UTC-12:00</option>
+                                <option value="-39600">UTC-11:00</option>
+                                <option value="-36000">UTC-10:00</option>
+                                <option value="-32400">UTC-09:00</option>
+                                <option value="-28800">UTC-08:00</option>
+                                <option value="-25200">UTC-07:00</option>
+                                <option value="-21600">UTC-06:00</option>
+                                <option value="-18000">UTC-05:00</option>
+                                <option value="-14400">UTC-04:00</option>
+                                <option value="-10800">UTC-03:00</option>
+                                <option value="-7200">UTC-02:00</option>
+                                <option value="-3600">UTC-01:00</option>
+                                <option value="0">UTC+00:00 (GMT)</option>
+                                <option value="3600">UTC+01:00</option>
+                                <option value="7200">UTC+02:00</option>
+                                <option value="10800">UTC+03:00</option>
+                                <option value="12600">UTC+03:30</option>
+                                <option value="14400">UTC+04:00</option>
+                                <option value="18000">UTC+05:00</option>
+                                <option value="19800">UTC+05:30 (India)</option>
+                                <option value="21600">UTC+06:00 (Bangladesh)</option>
+                                <option value="25200">UTC+07:00</option>
+                                <option value="28800">UTC+08:00</option>
+                                <option value="32400">UTC+09:00</option>
+                                <option value="34200">UTC+09:30</option>
+                                <option value="36000">UTC+10:00</option>
+                                <option value="39600">UTC+11:00</option>
+                                <option value="43200">UTC+12:00</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Time Format:</label>
+                            <select id="set-timeformat" class="form-control">
+                                <option value="24">24-Hour Clock</option>
+                                <option value="12">12-Hour Clock (AM/PM)</option>
+                            </select>
+                        </div>
+                        <hr class="mt-4 mb-4">
+                        <div class="form-group">
+                            <label>Admin Dashboard Password (leave blank to keep current):</label>
+                            <input type="password" id="set-admin-pass" class="form-control">
+                        </div>
+                        <hr class="mt-4 mb-4">
+                        <div class="form-group" style="display: flex; align-items: center; gap: 10px;">
+                            <input type="checkbox" id="set-tg-enabled" style="width: auto; margin:0;">
+                            <label style="margin:0;">Enable Telegram Notifications</label>
+                        </div>
+                        <div class="form-group">
+                            <label>Telegram Bot Token:</label>
+                            <input type="text" id="set-tg-token" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label>Telegram Chat ID:</label>
+                            <input type="text" id="set-tg-chat" class="form-control">
+                        </div>
+                        <hr class="mt-4 mb-4">
+                        <div class="form-group" style="display: flex; align-items: center; gap: 10px;">
+                            <input type="checkbox" id="set-buzzer-enabled" style="width: auto; margin:0;">
+                            <label style="margin:0;">Enable Hardware Buzzer Alert (On Power Restore)</label>
+                        </div>
+                        <div class="form-group">
+                            <label>Buzzer GPIO Pin (-1 to disable):</label>
+                            <input type="number" id="set-buzzer-pin" class="form-control" value="-1">
+                        </div>
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-primary">Save Settings</button>
+                        </div>
+                    </form>
+                    <hr class="mt-4 mb-4">
+                    <button class="btn btn-warning" onclick="restartDevice()">Restart Device</button>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script src="/chart.js"></script>
+    <script src="/app.js?v=3"></script>
+</body>
+
+</html>

@@ -1,0 +1,21 @@
+# PlatformIO build artifacts
+.pio/
+.pioenvs/
+.piolibdeps/
+
+# VS Code settings and workspace
+.vscode/
+
+# Generated firmware files
+*.bin
+*.elf
+*.hex
+*.map
+*.log
+
+# MacOS
+.DS_Store
+
+# Temporary files
+*.tmp
+*.swp
