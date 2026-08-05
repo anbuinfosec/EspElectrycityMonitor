@@ -19,3 +19,5 @@
 # Temporary files
 *.tmp
 *.swp
+compile_commands.json
+.cache/
