@@ -1,15 +1,9 @@
 #include "utils.h"
+#include <user_interface.h>
 #include <sys/time.h>
 #include <sys/reent.h>
 #include <errno.h>
-#ifdef ESP32
-#include <esp_system.h>
-bool isPowerLossReset() {
-    esp_reset_reason_t reason = esp_reset_reason();
-    return (reason == ESP_RST_POWERON || reason == ESP_RST_EXT);
-}
-#else
-#include <user_interface.h>
+
 bool isPowerLossReset() {
     rst_info *resetInfo = ESP.getResetInfoPtr();
     // REASON_DEFAULT_RST is normal power on
@@ -19,7 +13,6 @@ bool isPowerLossReset() {
     }
     return false;
 }
-#endif
 
 String formatDuration(uint32_t seconds) {
     if (seconds == 0) return "0 Seconds";
@@ -65,7 +58,6 @@ void setEpochTime(time_t epoch) {
     settimeofday(&tv, nullptr);
 }
 
-#ifndef ESP32
 extern "C" {
     int _gettimeofday_r(struct _reent* unused, struct timeval *tp, void *tzp) __attribute__((weak));
     time_t time(time_t *t) __attribute__((weak));
@@ -108,4 +100,3 @@ extern "C" int settimeofday(const struct timeval* tv, const struct timezone* tz)
     (void)fromSntp;
     return 0;
 }
-#endif

@@ -1,12 +1,6 @@
 #include "telegram.h"
 #include "settings.h"
-#ifdef ESP32
-#include <WiFi.h>
-#include <HTTPClient.h>
-#else
-#include <ESP8266WiFi.h>
 #include <ESP8266HTTPClient.h>
-#endif
 #include <WiFiClientSecure.h>
 #include <LittleFS.h>
 #include <ArduinoJson.h>
@@ -18,11 +12,7 @@ bool sendTelegramMessage(const String& message, String token, String chatId) {
     
     if (token == "" || chatId == "") return false;
     
-#ifdef ESP32
-    std::unique_ptr<WiFiClientSecure> client(new WiFiClientSecure);
-#else
     std::unique_ptr<BearSSL::WiFiClientSecure> client(new BearSSL::WiFiClientSecure);
-#endif
     client->setInsecure();
     
     HTTPClient https;
@@ -58,11 +48,7 @@ void sendTelegramDocument(const char* filePath) {
     if (!file) return;
     size_t fileSize = file.size();
     
-#ifdef ESP32
-    std::unique_ptr<WiFiClientSecure> client(new WiFiClientSecure);
-#else
     std::unique_ptr<BearSSL::WiFiClientSecure> client(new BearSSL::WiFiClientSecure);
-#endif
     client->setInsecure();
     
     if (client->connect("api.telegram.org", 443)) {

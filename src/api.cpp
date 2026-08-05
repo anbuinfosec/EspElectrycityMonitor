@@ -5,11 +5,7 @@
 #include "utils.h"
 #include "telegram.h"
 #include <ArduinoJson.h>
-#ifdef ESP32
-#include <WiFi.h>
-#else
 #include <ESP8266WiFi.h>
-#endif
 #include <AsyncJson.h>
 
 void setupAPI(AsyncWebServer& server) {
